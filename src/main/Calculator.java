@@ -11,24 +11,27 @@ import java.util.Vector;
 
 public class Calculator
 {
-	public static final int numSides = 6;
+	public static final int[] sides = {0, 1};
 	
-	public static final int numDiceRoll = 4;
+	public static final int numDiceRoll = 3;
 	public static final int numDiceTotal = 3;
 	
-	public static final int numAbilities = 6;
+	public static final int numAbilities = 1;
 	
 	public static final int numRanksToPrint = 100;
 	
 	public static void main(String[] args)
 	{
-		Integer[][] rolls = generatePossibilities(1, numSides, numDiceRoll);
+		Integer[][] rolls = generatePossibilities(sides, numDiceRoll);
 		ArrayList<Integer> scores = generateScoresFromRolls(rolls);
 		
 		HashMap<Integer, Long> scoreCounts = generateCountMap(scores);
 		
-		int maxScore = numDiceTotal * numSides;
-		Integer[][] scoreSets = generatePossibilities(numDiceTotal, maxScore, numAbilities);
+		Arrays.sort(sides);
+		int minScore = numDiceTotal * sides[0];
+		int maxScore = numDiceTotal * sides[sides.length - 1];
+		
+		Integer[][] scoreSets = generatePossibilities(minScore, maxScore, numAbilities);
 		ArrayList<AbilityScoreSet> abilitySets = generateAbilityScoreSets(scoreSets);
 		
 		HashMap<AbilityScoreSet, Long> abilityScoreSetCounts = generateCountMap(abilitySets);
@@ -41,7 +44,7 @@ public class Calculator
 		Collections.sort(counts, Collections.reverseOrder());
 		
 		//Now we have everything we need we can display the ranks
-		long totalPossibilities = (long)Math.pow(numSides, numDiceRoll * numAbilities);
+		long totalPossibilities = (long)Math.pow(sides.length, numDiceRoll * numAbilities);
 		long totalPossibilitiesAccounted = 0;
 		
 		long rank = 1;
@@ -89,15 +92,25 @@ public class Calculator
 	 */
 	private static Integer[][] generatePossibilities(int minValue, int maxValue, int numValues)
 	{
-		maxValue++;
-		int numNumbers = maxValue - minValue;
-		int numPossibilities = numNumbers;
+		int numValue = maxValue - minValue + 1;
+		int[] values = new int[numValue];
+		
+		for (int i=0; i<numValue; i++)
+		{
+			values[i] = i+minValue;
+		}
+		
+		return generatePossibilities(values, numValues);
+	}
+	private static Integer[][] generatePossibilities(int[] values, int numValues)
+	{
+		int numPossibilities = values.length;
 		
 		//First, find all the ways of rolling one dice		
 		Integer[][] originalNumbers = new Integer[numPossibilities][1];
 		for (int i=0; i<numPossibilities; i++)
 		{
-			originalNumbers[i][0] = minValue + i;
+			originalNumbers[i][0] = values[i];
 		}
 		
 		//For each additional dice, roll each number for each result
@@ -105,21 +118,21 @@ public class Calculator
 		for (int i=1; i<numValues; i++)
 		{
 			int originalPossibilities = originalNumbers.length;
-			numPossibilities = originalPossibilities * numNumbers;
+			numPossibilities = originalPossibilities * values.length;
 			
 			rolls = new Integer[numPossibilities][i+1];			
 			
 			for (int j=0; j<originalPossibilities; j++)
 			{
-				for (int k=0; k<numNumbers; k++)
+				for (int k=0; k<values.length; k++)
 				{
-					int index = j * numNumbers + k;
+					int index = j * values.length + k;
 					
 					for (int l=0; l<i; l++)
 					{
 						rolls[index][l] = originalNumbers[j][l];
 					}
-					rolls[index][i] = minValue + k;
+					rolls[index][i] = values[k];
 				}
 			}
 			
