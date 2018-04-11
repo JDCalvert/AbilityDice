@@ -1,5 +1,6 @@
 package main;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -71,5 +72,21 @@ public class AbilityScoreSet
 		}
 		
 		return sb.toString();
+	}
+	
+	public static ArrayList<AbilityScoreSet> generateAbilityScoreSets(Integer[][] abilitySetPossibilities)
+	{
+		int numPossibilities = abilitySetPossibilities.length;
+		
+		ArrayList<AbilityScoreSet> abilityScoreSets = new ArrayList<AbilityScoreSet>(numPossibilities);
+		for (int i=0; i<numPossibilities; i++)
+		{
+			Integer[] abilitySet = abilitySetPossibilities[i];
+			AbilityScoreSet abilityScoreSet = new AbilityScoreSet(abilitySet);
+			
+			abilityScoreSets.add(abilityScoreSet);
+		}
+		
+		return abilityScoreSets;
 	}
 }

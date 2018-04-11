@@ -7,16 +7,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 
 public class Calculator
 {
-	public static final int[] sides = {0, 1};
+	public static final Integer[] sides = {1,2,3,4,5,6};
+	public static final Integer[] searchSet = {15,14,13,12,10,8};
 	
-	public static final int numDiceRoll = 3;
+	public static final int numDiceRoll = 4;
 	public static final int numDiceTotal = 3;
 	
-	public static final int numAbilities = 1;
+	public static final int numAbilities = 6;
 	
 	public static final int numRanksToPrint = 100;
 	
@@ -27,17 +27,16 @@ public class Calculator
 		
 		HashMap<Integer, Long> scoreCounts = generateCountMap(scores);
 		
-		Arrays.sort(sides);
-		int minScore = numDiceTotal * sides[0];
-		int maxScore = numDiceTotal * sides[sides.length - 1];
+		Integer[] scoresArray = new Integer[scores.size()];
+		scores.toArray(scoresArray);
 		
-		Integer[][] scoreSets = generatePossibilities(minScore, maxScore, numAbilities);
-		ArrayList<AbilityScoreSet> abilitySets = generateAbilityScoreSets(scoreSets);
+		Integer[][] scoreSets = generatePossibilities(scoresArray, numAbilities);
+		ArrayList<AbilityScoreSet> abilitySets = AbilityScoreSet.generateAbilityScoreSets(scoreSets);
 		
 		HashMap<AbilityScoreSet, Long> abilityScoreSetCounts = generateCountMap(abilitySets);
 		
 		HashMap<AbilityScoreSet, Long> abilityScoreSetPossibilityCounts = calculateAbilityScoreSetCombinations(abilityScoreSetCounts, scoreCounts);
-		HashMap<Long, Vector<AbilityScoreSet>> countToAbilityScoreSets = inverseHashMap(abilityScoreSetPossibilityCounts);
+		HashMap<Long, ArrayList<AbilityScoreSet>> countToAbilityScoreSets = inverseHashMap(abilityScoreSetPossibilityCounts);
 
 		Set<Long> possibilities = countToAbilityScoreSets.keySet();
 		ArrayList<Long> counts = new ArrayList<Long>(possibilities);
@@ -47,11 +46,13 @@ public class Calculator
 		long totalPossibilities = (long)Math.pow(sides.length, numDiceRoll * numAbilities);
 		long totalPossibilitiesAccounted = 0;
 		
+		System.out.println("Rank	Value	Possibilities	Probability");
+		
 		long rank = 1;
 		for (int i=0; i<counts.size(); i++)
 		{
 			long numPossibilities = counts.get(i);
-			Vector<AbilityScoreSet> abilityScoreSets = countToAbilityScoreSets.get(numPossibilities);
+			ArrayList<AbilityScoreSet> abilityScoreSets = countToAbilityScoreSets.get(numPossibilities);
 			
 			double percentage = 100.0d * (double)numPossibilities / (double)totalPossibilities;
 			
@@ -73,12 +74,6 @@ public class Calculator
 		System.out.println("There are a total of " + totalPossibilities + " possibilities");
 		System.out.println("Accounted for " + totalPossibilitiesAccounted + " possibilities");
 		
-		Integer[] searchSet = new Integer[numAbilities];
-		for (int i=0; i<numAbilities; i++)
-		{
-			searchSet[i] = maxScore;
-		}
-		
 		AbilityScoreSet searchAbilityScoreSet = new AbilityScoreSet(searchSet);
 		Long numberSearched = abilityScoreSetPossibilityCounts.get(searchAbilityScoreSet);
 		double percentage = 100.0d * (double)numberSearched / (double)totalPossibilities;
@@ -90,19 +85,7 @@ public class Calculator
 	 * 
 	 * @return A HashMap containing the possible results mapped to the number of ways of achieving that result
 	 */
-	private static Integer[][] generatePossibilities(int minValue, int maxValue, int numValues)
-	{
-		int numValue = maxValue - minValue + 1;
-		int[] values = new int[numValue];
-		
-		for (int i=0; i<numValue; i++)
-		{
-			values[i] = i+minValue;
-		}
-		
-		return generatePossibilities(values, numValues);
-	}
-	private static Integer[][] generatePossibilities(int[] values, int numValues)
+	private static Integer[][] generatePossibilities(Integer[] values, int numValues)
 	{
 		int numPossibilities = values.length;
 		
@@ -165,25 +148,10 @@ public class Calculator
 		}
 		
 		return scorePossibilities;	
-	}
-	
-	private static ArrayList<AbilityScoreSet> generateAbilityScoreSets(Integer[][] abilitySetPossibilities)
-	{
-		int numPossibilities = abilitySetPossibilities.length;
-		
-		ArrayList<AbilityScoreSet> abilityScoreSets = new ArrayList<AbilityScoreSet>(numPossibilities);
-		for (int i=0; i<numPossibilities; i++)
-		{
-			Integer[] abilitySet = abilitySetPossibilities[i];
-			AbilityScoreSet abilityScoreSet = new AbilityScoreSet(abilitySet);
-			
-			abilityScoreSets.add(abilityScoreSet);
-		}
-		
-		return abilityScoreSets;
-	}
+	}	
 	
 	/**
+	 * For a list of entities, group equal ones together and count how many there were
 	 * 
 	 * @param scorePossibilities
 	 * @return
@@ -240,9 +208,9 @@ public class Calculator
 		return abilityScoreSetToPossibilitiesMap;
 	}
 	
-	private static <V, K> HashMap<V, Vector<K>> inverseHashMap(HashMap<K, V> map)
+	private static <V, K> HashMap<V, ArrayList<K>> inverseHashMap(HashMap<K, V> map)
 	{
-		HashMap<V, Vector<K>> inverseMap = new HashMap<V, Vector<K>>();
+		HashMap<V, ArrayList<K>> inverseMap = new HashMap<V, ArrayList<K>>();
 		
 		for (Iterator<Entry<K, V>> i = map.entrySet().iterator(); i.hasNext(); )
 		{
@@ -250,10 +218,10 @@ public class Calculator
 			K key = entry.getKey();
 			V value = entry.getValue();
 			
-			Vector<K> inverseValue = inverseMap.get(value);
+			ArrayList<K> inverseValue = inverseMap.get(value);
 			if (inverseValue == null)
 			{
-				inverseValue = new Vector<K>();
+				inverseValue = new ArrayList<K>();
 				inverseMap.put(value, inverseValue);
 			}
 			inverseValue.add(key);
