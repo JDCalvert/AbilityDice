@@ -27,8 +27,9 @@ public class Calculator
 		
 		HashMap<Integer, Long> scoreCounts = generateCountMap(scores);
 		
-		Integer[] scoresArray = new Integer[scores.size()];
-		scores.toArray(scoresArray);
+		Set<Integer> scoreSet = scoreCounts.keySet();
+		Integer[] scoresArray = new Integer[scoreSet.size()];
+		scoreSet.toArray(scoresArray);
 		
 		Integer[][] scoreSets = generatePossibilities(scoresArray, numAbilities);
 		ArrayList<AbilityScoreSet> abilitySets = AbilityScoreSet.generateAbilityScoreSets(scoreSets);
